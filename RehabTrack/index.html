@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VitalWatch — Remote Rehabilitation Monitoring System</title>
+
+  
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap"
+    rel="stylesheet"
+  />
+
+  
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+
+<div class="modal-overlay hidden" id="session-modal">
+  <div class="modal-box">
+    <div class="modal-title">▶ Start Exercise Session</div>
+    <div class="modal-sub">
+      The system will capture 4 randomized keyframe snapshots during your session and
+      securely transmit them to your clinician for asynchronous verification.
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Select Exercise Plan</label>
+      <select class="form-input">
+        <option>Today's Plan — Post-ACL Recovery Week 6</option>
+        <option>Custom Session</option>
+        <option>Flexibility Focus</option>
+        <option>Strength & Conditioning</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Session Notes (optional)</label>
+      <textarea class="form-input" placeholder="e.g. Feeling some soreness in left knee today…" rows="3"></textarea>
+    </div>
+
+    <div style="background:var(--teal-light);border:1px solid #99f6e4;border-radius:10px;padding:12px;font-size:12px;color:var(--teal-dark);line-height:1.6;">
+      🔒 <strong>Privacy Notice:</strong> Only 4 still images will be captured at randomized
+      intervals — no continuous video recording. All images are end-to-end encrypted and
+      automatically deleted after 30 days.
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('session-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="startSession()">▶ Start Session</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     MODAL — APPROVE SESSION
+═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="approve-modal">
+  <div class="modal-box">
+    <div class="modal-title">✓ Approve Session</div>
+    <div class="modal-sub">
+      You're about to approve <strong>John Doe's</strong> session on Feb 20, 2026.
+      This decision will be recorded in the patient's compliance history.
+    </div>
+    <div class="form-group">
+      <label class="form-label">Approval Notes</label>
+      <textarea class="form-input" rows="3"
+        placeholder="Optional notes for the patient…">KF3 camera angle was unclear but overall session appears legitimate. Good progress this week, John.</textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('approve-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="approveSession()">✓ Confirm Approval</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     MODAL — REJECT SESSION
+═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="reject-modal">
+  <div class="modal-box">
+    <div class="modal-title">✕ Reject Session</div>
+    <div class="modal-sub">
+      Please provide a reason. The patient will be notified and asked to
+      repeat the session.
+    </div>
+    <div class="form-group">
+      <label class="form-label">Reason for Rejection</label>
+      <select class="form-input">
+        <option>Patient not visible in majority of keyframes</option>
+        <option>Incorrect exercise performed</option>
+        <option>Session duration too short</option>
+        <option>Poor image quality across all frames</option>
+        <option>Other (specify in notes below)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Additional Notes</label>
+      <textarea class="form-input" rows="3"
+        placeholder="Explain what the patient should correct in their next session…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('reject-modal')">Cancel</button>
+      <button class="btn btn-danger" onclick="rejectSession()">✕ Reject &amp; Notify Patient</button>
+    </div>
+  </div>
+</div>
+
+
+
+     <!-- PAGE 1 — LOGIN -->
+
+<div id="page-login" class="page active">
+
+  <!-- Header Bar -->
+  <header class="login-header">
+    <div class="login-header-logo">
+      <div class="logo-icon">🏥</div>
+      <div>
+        <div class="logo-text">RehabTrack</div>
+        <div class="logo-sub">Remote Rehabilitation Monitoring System</div>
+      </div>
+    </div>
+    <div class="header-badges">
+      <span class="header-badge hb-teal">🔒 HIPAA Compliant</span>
+      <span class="header-badge hb-amber">📸 Keyframe Verified</span>
+      <span class="header-badge hb-purple">🔐 AES-256 Encrypted</span>
+    </div>
+  </header>
+
+  <!-- Main Body -->
+  <main class="login-body">
+    <div class="login-grid">
+
+      <!-- ── Hero / Feature List ── -->
+      <div class="login-hero">
+        <h2>Monitor recovery,<br><em>respect privacy.</em></h2>
+        <p class="hero-desc">
+          A secure platform where patients log exercises and clinicians verify compliance —
+          using lightweight randomized keyframe snapshots instead of continuous video surveillance.
+        </p>
+        <div class="feature-list">
+          <div class="feature-item">
+            <div class="feature-icon">📸</div>
+            <div class="feature-text">
+              <strong>Randomized Keyframe Capture</strong>
+              <span>4 snapshots per session at unpredictable intervals — not continuous recording</span>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">🔐</div>
+            <div class="feature-text">
+              <strong>End-to-End Encryption</strong>
+              <span>All keyframes encrypted in transit and at rest, auto-deleted after 30 days</span>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">📊</div>
+            <div class="feature-text">
+              <strong>Role-Based Dashboards</strong>
+              <span>Separate secure portals for patients and clinicians</span>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">📱</div>
+            <div class="feature-text">
+              <strong>Works Anywhere</strong>
+              <span>Desktop, tablet, or mobile — any modern browser supported</span>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">⚡</div>
+            <div class="feature-text">
+              <strong>Low Bandwidth</strong>
+              <span>4 images per session vs. continuous video — 98% less data usage</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Login Card ── -->
+      <div class="login-card">
+        <div class="login-card-title">Welcome back</div>
+        <div class="login-card-sub">Sign in to your account to continue</div>
+
+        <!-- Role Selector -->
+        <div class="role-selector" id="role-selector">
+          <div class="role-option selected" onclick="selectRole(this, 'patient')">
+            <div class="role-check">✓</div>
+            <span class="ri">🏃</span>
+            <span class="rl">Patient</span>
+            <span class="rd">Log &amp; track exercises</span>
+          </div>
+          <div class="role-option" onclick="selectRole(this, 'clinician')">
+            <div class="role-check">✓</div>
+            <span class="ri">🩺</span>
+            <span class="rl">Clinician</span>
+            <span class="rd">Review sessions</span>
+          </div>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label class="form-label" for="login-email">Email Address</label>
+            <input
+              class="form-input"
+              type="email"
+              id="login-email"
+              placeholder=""
+              value=""
+              autocomplete="email"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="login-password">Password</label>
+            <input
+              class="form-input"
+              type="password"
+              id="login-password"
+              placeholder=""
+              value=""
+              autocomplete="current-password"
+              required
+            />
+          </div>
+          <div class="form-footer-row">
+            <label class="remember-row">
+              <input type="checkbox" checked /> Remember me
+            </label>
+            <a href="#" class="forgot-link">Forgot password?</a>
+          </div>
+          <button type="submit" class="btn btn-primary btn-xl btn-full" id="login-btn">
+            Sign In →
+          </button>
+        </form>
+
+        <div class="divider-line">or</div>
+
+        <button class="btn btn-navy btn-full" onclick="ssoLogin()">
+          🏥 Sign in with Hospital SSO
+        </button>
+
+        <div class="security-note">
+          🛡️ 256-bit AES encrypted &nbsp;·&nbsp; HIPAA compliant &nbsp;·&nbsp;
+          Keyframes auto-deleted after 30 days &nbsp;·&nbsp; No continuous video recording
+        </div>
+      </div>
+      <!-- /login-card -->
+
+    </div>
+    <!-- /login-grid -->
+  </main>
+
+  <!-- Footer -->
+  <footer class="login-footer">
+    <span>2026 VitalWatch</span>
+    <a href="#">Privacy Policy</a>
+    <a href="#">Terms of Use</a>
+    <a href="#">HIPAA Notice</a>
+    <a href="#">Contact Support</a>
+  </footer>
+</div>
+<!-- /page-login -->
+
+
+<!-- 
+     PAGE 2 — PATIENT DASHBOARD
+-->
+<div id="page-patient" class="page">
+
+  <!-- Top Navigation -->
+  <nav class="topnav">
+    <div class="topnav-logo">
+      <div class="logo-icon">🏥</div>
+      <div>
+        <div class="logo-text">RehabTrack</div>
+        <div class="logo-sub">Patient Portal</div>
+      </div>
+    </div>
+    <div class="topnav-divider"></div>
+    <div class="nav-tabs">
+      <button class="nav-tab active">Dashboard</button>
+      <button class="nav-tab">My Exercises</button>
+      <button class="nav-tab">Keyframes</button>
+      <button class="nav-tab">Progress</button>
+      <button class="nav-tab">Messages</button>
+    </div>
+    <div class="topnav-right">
+      <button class="notif-btn" onclick="showToast('2 new messages from Dr. Chen','info')">
+        🔔<span class="notif-badge">2</span>
+      </button>
+      <div class="user-chip">
+        <span class="uc-name"  id="husername">John Doe</span>
+      </div>
+      <button class="logout-btn" onclick="logout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="dash-wrap">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-user">
+        <div class="avatar" style="width:38px;height:38px;background:var(--teal);font-size:14px;">JD</div>
+        <div>
+          <div class="su-name"  id="susername">John Doe</div>
+          <div class="su-role">Patient · Week 6</div>
+        </div>
+      </div>
+
+      <button class="nav-item active"><span class="ni-icon">📊</span> Dashboard</button>
+      <button class="nav-item" onclick="openModal('session-modal')"><span class="ni-icon">▶️</span> Start Session</button>
+      <button class="nav-item" onclick="showToast('Opening schedule…','info')"><span class="ni-icon">📅</span> Schedule</button>
+      <button class="nav-item" onclick="showToast('Opening keyframes…','info')"><span class="ni-icon">📸</span> My Keyframes</button>
+      <button class="nav-item" onclick="showToast('Opening progress charts…','info')"><span class="ni-icon">📈</span> Progress Charts</button>
+      <button class="nav-item" onclick="showToast('2 new messages','info')">
+        <span class="ni-icon">💬</span> Messages <span class="ni-badge">2</span>
+      </button>
+      <button class="nav-item" onclick="showToast('Opening prescriptions…','info')"><span class="ni-icon">💊</span> Prescriptions</button>
+
+      <div class="nav-group-label">Account</div>
+      <button class="nav-item" onclick="showToast('Opening settings…','info')"><span class="ni-icon">⚙️</span> Settings</button>
+      <button class="nav-item" onclick="showToast('Opening privacy settings…','info')"><span class="ni-icon">🔒</span> Privacy</button>
+      <button class="nav-item" style="margin-top:auto;" onclick="logout()"><span class="ni-icon">🚪</span> Sign Out</button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <h2 id="username"></h2>
+          <div class="ph-sub">Friday, Feb 20, 2026 · Post-ACL Surgery Recovery · Week 6 of 12</div>
+        </div>
+        <div class="flex gap-8">
+          <button class="btn btn-ghost" onclick="showToast('Schedule refreshed','info')">📅 Schedule</button>
+          <button class="btn btn-primary" onclick="openModal('session-modal')">▶ Start Today's Session</button>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="patient-stats">
+        <div class="stat-card accent">
+          <div class="stat-label">Today's Compliance</div>
+          <div class="stat-value">87%</div>
+          <div class="stat-sub">3 of 4 exercises completed</div>
+          <div class="progress-bar" style="margin-top:10px;background:rgba(255,255,255,.2);">
+            <div class="progress-fill" style="width:87%;background:#fff;"></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Weekly Streak</div>
+          <div class="stat-value">🔥 12</div>
+          <div class="stat-sub">Consecutive active days</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Sessions Verified</div>
+          <div class="stat-value">28</div>
+          <div class="stat-sub">Clinician approved</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Next Appointment</div>
+          <div class="stat-value" style="font-size:20px;margin-top:4px;">Feb 24</div>
+          <div class="stat-sub">Dr. Sarah Chen · 10:00 AM</div>
+        </div>
+      </div>
+
+      <!-- Two-Column Grid -->
+      <div class="patient-main-grid">
+
+        <!-- ── Left Column ── -->
+        <div class="flex-col" style="gap:20px;">
+
+          <!-- Exercise Plan Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3>📋 Today's Exercise Plan</h3>
+              <span class="chip chip-success">3 / 4 Complete</span>
+            </div>
+            <div class="exercise-list">
+
+              <div class="exercise-item">
+                <div class="ex-icon" style="background:#dbeafe;">🦵</div>
+                <div class="ex-info">
+                  <div class="ex-name">Straight Leg Raises</div>
+                  <div class="ex-meta">3 sets × 15 reps · Completed at 8:32 AM</div>
+                  <div class="ex-progress">
+                    <div class="progress-bar"><div class="progress-fill" style="width:100%;"></div></div>
+                  </div>
+                </div>
+                <span class="chip chip-success">✓ Done</span>
+              </div>
+
+              <div class="exercise-item">
+                <div class="ex-icon" style="background:#dcfce7;">🏋️</div>
+                <div class="ex-info">
+                  <div class="ex-name">Quad Sets (Isometric)</div>
+                  <div class="ex-meta">4 sets × 10 reps · Completed at 9:05 AM</div>
+                  <div class="ex-progress">
+                    <div class="progress-bar"><div class="progress-fill" style="width:100%;"></div></div>
+                  </div>
+                </div>
+                <span class="chip chip-success">✓ Done</span>
+              </div>
+
+              <div class="exercise-item" style="background:#fffbeb;border-radius:10px;">
+                <div class="ex-icon" style="background:#fef9c3;">🚴</div>
+                <div class="ex-info">
+                  <div class="ex-name">Stationary Cycling</div>
+                  <div class="ex-meta">15 minutes · In progress — 9 min remaining</div>
+                  <div class="ex-progress">
+                    <div class="progress-bar">
+                      <div class="progress-fill" style="width:60%;background:var(--amber);"></div>
+                    </div>
+                  </div>
+                </div>
+                <span class="chip chip-warning">⏳ Active</span>
+              </div>
+
+              <div class="exercise-item">
+                <div class="ex-icon" style="background:#fce7f3;">🧘</div>
+                <div class="ex-info">
+                  <div class="ex-name">Hamstring Stretches</div>
+                  <div class="ex-meta">3 × 30 second holds · Not started yet</div>
+                  <div class="ex-progress">
+                    <div class="progress-bar"><div class="progress-fill" style="width:0%;"></div></div>
+                  </div>
+                </div>
+                <span class="chip chip-muted">— Upcoming</span>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Keyframes Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3>📸 Today's Session Keyframes</h3>
+              <span class="chip chip-blue">Sent to Dr. Chen</span>
+            </div>
+            <div style="padding:14px 16px 6px;font-size:12px;color:var(--muted);">
+              4 snapshots captured at randomized unpredictable intervals.
+              Your clinician will verify these asynchronously.
+            </div>
+            <div class="kf-grid">
+              <div class="kf-item ok">
+                🏃
+                <div class="kf-timestamp">08:34:12</div>
+                <div class="kf-badge kfb-ok">✓ Verified</div>
+              </div>
+              <div class="kf-item ok">
+                🦵
+                <div class="kf-timestamp">08:41:55</div>
+                <div class="kf-badge kfb-ok">✓ Verified</div>
+              </div>
+              <div class="kf-item warn">
+                🚴
+                <div class="kf-timestamp">09:08:22</div>
+                <div class="kf-badge kfb-warn">⏳ Pending</div>
+              </div>
+              <div class="kf-item pending">
+                ⏱
+                <div class="kf-timestamp">— : — : —</div>
+                <div class="kf-badge kfb-pending">Next</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Weekly Calendar Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3>📅 Week of Feb 17 – 23, 2026</h3>
+              <a href="#" class="c-teal fs-12 fw-600">Full history →</a>
+            </div>
+            <div class="week-cal">
+              <div class="day-cell done"><span>✓</span><span class="dc-day">Mon</span></div>
+              <div class="day-cell done"><span>✓</span><span class="dc-day">Tue</span></div>
+              <div class="day-cell done"><span>✓</span><span class="dc-day">Wed</span></div>
+              <div class="day-cell done"><span>✓</span><span class="dc-day">Thu</span></div>
+              <div class="day-cell today"><span>⚡</span><span class="dc-day">Fri</span></div>
+              <div class="day-cell future"><span>—</span><span class="dc-day">Sat</span></div>
+              <div class="day-cell future"><span>—</span><span class="dc-day">Sun</span></div>
+            </div>
+          </div>
+
+        </div>
+        <!-- /left column -->
+
+        <!-- ── Right Column ── -->
+        <div class="flex-col" style="gap:20px;">
+
+          <!-- Compliance Ring Card -->
+          <div class="card">
+            <div class="card-header"><h3>📈 Compliance Overview</h3></div>
+            <div class="compliance-section">
+              <div class="ring-wrap">
+                <svg width="110" height="110" viewBox="0 0 110 110" aria-hidden="true">
+                  <circle cx="55" cy="55" r="44" fill="none" stroke="#e2e8f0" stroke-width="13"/>
+                  <circle cx="55" cy="55" r="44" fill="none" stroke="var(--teal)" stroke-width="13"
+                    stroke-dasharray="276.5" stroke-dashoffset="36" stroke-linecap="round"/>
+                </svg>
+                <div class="ring-center">
+                  <span class="ring-pct">87%</span>
+                  <span class="ring-lbl">This Week</span>
+                </div>
+              </div>
+              <div class="ring-legend">
+                <div class="legend-row"><div class="legend-dot" style="background:var(--teal)"></div> Completed (6 sessions)</div>
+                <div class="legend-row"><div class="legend-dot" style="background:var(--amber)"></div> Partial (1 session)</div>
+                <div class="legend-row"><div class="legend-dot" style="background:#e2e8f0"></div> Missed (0 sessions)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Session Timer Card -->
+          <div class="session-panel">
+            <div style="font-size:12px;opacity:.6;margin-bottom:4px;">ACTIVE SESSION</div>
+            <div class="session-timer" id="timer">00:09:42</div>
+            <div class="session-timer-label">Stationary Cycling — 15:00 target</div>
+            <div style="margin:16px 0;background:rgba(255,255,255,.15);border-radius:6px;height:6px;">
+              <div style="width:65%;height:100%;background:var(--teal);border-radius:6px;"></div>
+            </div>
+            <div style="font-size:12px;opacity:.65;">
+              Next keyframe capture in ~3 min at random interval
+            </div>
+          </div>
+
+          <!-- Messages Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3>💬 Messages</h3>
+              <span class="chip chip-danger">2 new</span>
+            </div>
+            <div class="msg-list">
+              <div class="msg-item">
+                <div class="avatar" style="width:32px;height:32px;background:var(--purple);font-size:11px;flex-shrink:0;">SC</div>
+                <div>
+                  <div class="msg-bubble">Great progress John! Keep up the cycling — your knee mobility is really improving. 💪</div>
+                  <div class="msg-meta c-muted">Dr. Sarah Chen · 2h ago</div>
+                </div>
+              </div>
+              <div class="msg-item self">
+                <div class="avatar" style="width:32px;height:32px;background:var(--teal);font-size:11px;flex-shrink:0;">JD</div>
+                <div>
+                  <div class="msg-bubble">Thank you! Will push harder today 🙌</div>
+                  <div class="msg-meta" style="text-align:right;">You · 1h ago</div>
+                </div>
+              </div>
+              <div class="msg-item">
+                <div class="avatar" style="width:32px;height:32px;background:var(--purple);font-size:11px;flex-shrink:0;">SC</div>
+                <div>
+                  <div class="msg-bubble">Don't overdo it — your milestone check is Mon Feb 24. Rest well this weekend.</div>
+                  <div class="msg-meta c-muted">Dr. Sarah Chen · 45m ago</div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:8px;">
+              <input id="msg-input" class="form-input" placeholder="Reply to Dr. Chen…"
+                style="font-size:13px;padding:9px 12px;" />
+              <button id="msg-send" class="btn btn-primary btn-sm">Send</button>
+            </div>
+          </div>
+
+        </div>
+        <!-- /right column -->
+
+      </div>
+      <!-- /patient-main-grid -->
+
+    </main>
+  </div>
+  <!-- /dash-wrap -->
+</div>
+<!-- /page-patient -->
+
+
+<!-- 
+     PAGE 3 — CLINICIAN DASHBOARD
+ -->
+<div id="page-clinician" class="page">
+
+  <!-- Top Navigation -->
+  <nav class="topnav">
+    <div class="topnav-logo">
+      <div class="logo-icon">🏥</div>
+      <div>
+        <div class="logo-text">RehabTrack</div>
+        <div class="logo-sub">Clinician Portal</div>
+      </div>
+    </div>
+    <div class="topnav-divider"></div>
+    <div class="nav-tabs">
+      <button class="nav-tab active">All Patients</button>
+      <button class="nav-tab">
+        Pending Reviews
+        <span style="background:var(--danger);color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;margin-left:4px;">7</span>
+      </button>
+      <button class="nav-tab">Flagged</button>
+      <button class="nav-tab">Reports</button>
+      <button class="nav-tab">Analytics</button>
+    </div>
+    <div class="topnav-right">
+      <div class="search-input-wrap" style="max-width:210px;">
+        <span class="si-icon">🔍</span>
+        <input class="search-input" placeholder="Search patients…" />
+      </div>
+      <button class="notif-btn" onclick="showToast('5 pending notifications','info')">
+        🔔<span class="notif-badge">5</span>
+      </button>
+      <div class="user-chip">
+        <div class="uc-avatar" style="background:var(--purple)">SC</div>
+        <span class="uc-name">Dr. Sarah Chen</span>
+      </div>
+      <button class="logout-btn" onclick="logout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="dash-wrap">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-user">
+        <div class="avatar" style="width:38px;height:38px;background:var(--purple);font-size:13px;">SC</div>
+        <div>
+          <div class="su-name">Dr. Sarah Chen</div>
+          <div class="su-role">Physiotherapist</div>
+        </div>
+      </div>
+
+      <button class="nav-item active" onclick="showToast('Viewing all patients','info')">
+        <span class="ni-icon">👥</span> All Patients
+      </button>
+      <button class="nav-item" onclick="goToVerify()">
+        <span class="ni-icon">🖼</span> Review Queue <span class="ni-badge">7</span>
+      </button>
+      <button class="nav-item" onclick="showToast('Viewing flagged cases','info')">
+        <span class="ni-icon">🚩</span> Flagged Cases <span class="ni-badge">3</span>
+      </button>
+      <button class="nav-item" onclick="showToast('Opening analytics…','info')">
+        <span class="ni-icon">📊</span> Analytics
+      </button>
+      <button class="nav-item" onclick="showToast('Opening reports…','info')">
+        <span class="ni-icon">📋</span> Reports
+      </button>
+      <button class="nav-item" onclick="showToast('5 new messages','info')">
+        <span class="ni-icon">💬</span> Messages <span class="ni-badge">5</span>
+      </button>
+
+      <div class="nav-group-label">Administration</div>
+      <button class="nav-item" onclick="showToast('Opening add patient form…','info')">
+        <span class="ni-icon">➕</span> Add Patient
+      </button>
+      <button class="nav-item" onclick="showToast('Opening settings…','info')">
+        <span class="ni-icon">⚙️</span> Settings
+      </button>
+      <button class="nav-item" style="margin-top:auto;" onclick="logout()">
+        <span class="ni-icon">🚪</span> Sign Out
+      </button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+
+      <div class="page-header">
+        <div>
+          <h2>Patient Overview</h2>
+          <div class="ph-sub">St. Mary's Rehabilitation · 24 active patients · Friday, Feb 20, 2026</div>
+        </div>
+        <div class="flex gap-8">
+          <button class="btn btn-ghost" onclick="showToast('Report exported as PDF','info')">📥 Export Report</button>
+          <button class="btn btn-primary" onclick="showToast('Invite sent to new patient','success')">➕ Add Patient</button>
+        </div>
+      </div>
+
+      <!-- Clinician Stats -->
+      <div class="clinician-stats">
+        <div class="stat-card accent">
+          <div class="stat-label">Total Patients</div>
+          <div class="stat-value">24</div>
+          <div class="stat-sub">Active in programme</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending Reviews</div>
+          <div class="stat-value" style="color:var(--amber);">7</div>
+          <div class="stat-sub">Keyframes awaiting check</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">High Compliance</div>
+          <div class="stat-value" style="color:var(--success);">18</div>
+          <div class="stat-sub">≥ 80% this week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Flagged / At-Risk</div>
+          <div class="stat-value" style="color:var(--danger);">3</div>
+          <div class="stat-sub">Intervention needed</div>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="flex items-center justify-between" style="margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+        <div class="filter-tabs">
+          <button class="filter-tab active">All (24)</button>
+          <button class="filter-tab">Pending (7)</button>
+          <button class="filter-tab">High ✅ (18)</button>
+          <button class="filter-tab">At-Risk ⚠ (3)</button>
+          <button class="filter-tab">Flagged 🚩 (3)</button>
+        </div>
+        <div class="search-input-wrap">
+          <span class="si-icon">🔍</span>
+          <input class="search-input" placeholder="Search patients…" />
+        </div>
+      </div>
+
+      <!-- Patient Cards Grid -->
+      <div class="patient-cards">
+
+        <!-- John Doe -->
+        <div class="pt-card">
+          <div class="pt-card-head">
+            <div class="avatar" style="width:44px;height:44px;background:var(--teal);font-size:15px;">JD</div>
+            <div class="pt-info">
+              <div class="pt-name">John Doe</div>
+              <div class="pt-cond">Post-ACL Surgery · Week 6 of 12</div>
+            </div>
+            <span class="chip chip-success ml-auto">87%</span>
+          </div>
+          <div class="pt-card-body">
+            <div class="fs-11 fw-600 c-muted" style="text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Today's Keyframes</div>
+            <div class="mini-kfs">
+              <div class="mini-kf ok">🏃</div>
+              <div class="mini-kf ok">🦵</div>
+              <div class="mini-kf warn">🚴</div>
+              <div class="mini-kf empty">⏳</div>
+            </div>
+            <div class="pt-status-row c-muted">2 verified · 1 pending · 1 upcoming</div>
+            <div class="pt-actions">
+              <button class="btn btn-primary btn-sm" style="flex:1;" onclick="goToVerify()">Review Session</button>
+              <button class="btn btn-ghost btn-sm" onclick="showToast('John Doe flagged for review','error')">🚩 Flag</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alice Martinez -->
+        <div class="pt-card">
+          <div class="pt-card-head">
+            <div class="avatar" style="width:44px;height:44px;background:var(--purple);font-size:15px;">AM</div>
+            <div class="pt-info">
+              <div class="pt-name">Alice Martinez</div>
+              <div class="pt-cond">Diabetes Management · Week 12</div>
+            </div>
+            <span class="chip chip-warning ml-auto">62%</span>
+          </div>
+          <div class="pt-card-body">
+            <div class="fs-11 fw-600 c-muted" style="text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Today's Keyframes</div>
+            <div class="mini-kfs">
+              <div class="mini-kf ok">🧘</div>
+              <div class="mini-kf flag">❓</div>
+              <div class="mini-kf flag">❓</div>
+              <div class="mini-kf flag">❓</div>
+            </div>
+            <div class="pt-status-row c-danger">1 verified · 3 flagged — review needed urgently</div>
+            <div class="pt-actions">
+              <button class="btn btn-primary btn-sm" style="flex:1;" onclick="showToast('Opening Alice Martinez session…','info')">Review Session</button>
+              <button class="btn btn-ghost btn-sm" onclick="showToast('Alice Martinez flagged','error')">🚩 Flag</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Raj Kumar -->
+        <div class="pt-card">
+          <div class="pt-card-head">
+            <div class="avatar" style="width:44px;height:44px;background:#ea580c;font-size:15px;">RK</div>
+            <div class="pt-info">
+              <div class="pt-name">Raj Kumar</div>
+              <div class="pt-cond">Hypertension Rehab · Week 3</div>
+            </div>
+            <span class="chip chip-success ml-auto">95%</span>
+          </div>
+          <div class="pt-card-body">
+            <div class="fs-11 fw-600 c-muted" style="text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Today's Keyframes</div>
+            <div class="mini-kfs">
+              <div class="mini-kf ok">🚶</div>
+              <div class="mini-kf ok">🏋️</div>
+              <div class="mini-kf ok">🧘</div>
+              <div class="mini-kf ok">💪</div>
+            </div>
+            <div class="pt-status-row c-success">All 4 keyframes verified — excellent compliance ✓</div>
+            <div class="pt-actions">
+              <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="showToast('Raj Kumar report opened','info')">View Report</button>
+              <button class="btn btn-success btn-sm" onclick="showToast('Raj Kumar session approved ✓','success')">✓ Approve</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lisa Park -->
+        <div class="pt-card">
+          <div class="pt-card-head">
+            <div class="avatar" style="width:44px;height:44px;background:#0891b2;font-size:15px;">LP</div>
+            <div class="pt-info">
+              <div class="pt-name">Lisa Park</div>
+              <div class="pt-cond">Knee Replacement · Week 10</div>
+            </div>
+            <span class="chip chip-danger ml-auto">34%</span>
+          </div>
+          <div class="pt-card-body">
+            <div class="fs-11 fw-600 c-muted" style="text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Today's Keyframes</div>
+            <div class="mini-kfs">
+              <div class="mini-kf flag">❌</div>
+              <div class="mini-kf flag">❌</div>
+              <div class="mini-kf flag">❌</div>
+              <div class="mini-kf flag">❌</div>
+            </div>
+            <div class="pt-status-row c-danger">Session not completed — immediate intervention required</div>
+            <div class="pt-actions">
+              <button class="btn btn-danger btn-sm" style="flex:1;" onclick="showToast('Calling Lisa Park…','info')">📞 Contact Patient</button>
+              <button class="btn btn-ghost btn-sm" onclick="showToast('Lisa Park escalated to senior','error')">🚨 Escalate</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Michael Ng -->
+        <div class="pt-card">
+          <div class="pt-card-head">
+            <div class="avatar" style="width:44px;height:44px;background:#0369a1;font-size:15px;">MN</div>
+            <div class="pt-info">
+              <div class="pt-name">Michael Ng</div>
+              <div class="pt-cond">Shoulder Rotator Cuff · Week 8</div>
+            </div>
+            <span class="chip chip-success ml-auto">78%</span>
+          </div>
+          <div class="pt-card-body">
+            <div class="fs-11 fw-600 c-muted" style="text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Today's Keyframes</div>
+            <div class="mini-kfs">
+              <div class="mini-kf ok">💪</div>
+              <div class="mini-kf ok">🤸</div>
+              <div class="mini-kf warn">🏋️</div>
+              <div class="mini-kf warn">🤲</div>
+            </div>
+            <div class="pt-status-row c-muted">2 verified · 2 pending clinician review</div>
+            <div class="pt-actions">
+              <button class="btn btn-primary btn-sm" style="flex:1;" onclick="showToast('Opening Michael Ng session…','info')">Review Session</button>
+              <button class="btn btn-ghost btn-sm" onclick="showToast('Michael Ng flagged','error')">🚩 Flag</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Priya Sharma -->
+        <div class="pt-card">
+          <div class="pt-card-head">
+            <div class="avatar" style="width:44px;height:44px;background:#be185d;font-size:15px;">PS</div>
+            <div class="pt-info">
+              <div class="pt-name">Priya Sharma</div>
+              <div class="pt-cond">Lower Back Rehab · Week 2</div>
+            </div>
+            <span class="chip chip-success ml-auto">100%</span>
+          </div>
+          <div class="pt-card-body">
+            <div class="fs-11 fw-600 c-muted" style="text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Today's Keyframes</div>
+            <div class="mini-kfs">
+              <div class="mini-kf ok">🧘</div>
+              <div class="mini-kf ok">🤸</div>
+              <div class="mini-kf ok">🚶</div>
+              <div class="mini-kf ok">💆</div>
+            </div>
+            <div class="pt-status-row c-success">Perfect session — 100% compliance this week 🌟</div>
+            <div class="pt-actions">
+              <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="showToast('Priya Sharma report opened','info')">View Report</button>
+              <button class="btn btn-success btn-sm" onclick="showToast('Priya Sharma session approved ✓','success')">✓ Approve</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- /patient-cards -->
+
+    </main>
+  </div>
+  <!-- /dash-wrap -->
+</div>
+<!-- /page-clinician -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     PAGE 4 — KEYFRAME VERIFICATION
+═══════════════════════════════════════════════════════ -->
+<div id="page-verify" class="page" style="flex-direction:column;">
+
+  <!-- Top Navigation -->
+  <nav class="topnav">
+    <div class="topnav-logo">
+      <div class="logo-icon">🏥</div>
+      <div>
+        <div class="logo-text">RehabTrack</div>
+        <div class="logo-sub">Keyframe Verification</div>
+      </div>
+    </div>
+    <div class="topnav-divider"></div>
+    <div class="nav-tabs">
+      <button class="nav-tab" onclick="goToClinicianDash()">← Back to Patients</button>
+      <button class="nav-tab active">🖼 Keyframe Verification</button>
+    </div>
+    <div class="topnav-right">
+      <button class="notif-btn" onclick="showToast('5 pending notifications','info')">
+        🔔<span class="notif-badge">5</span>
+      </button>
+      <div class="user-chip">
+        <div class="uc-avatar" style="background:var(--purple)">SC</div>
+        <span class="uc-name">Dr. Sarah Chen</span>
+      </div>
+      <button class="logout-btn" onclick="logout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="verify-layout" style="flex:1;">
+
+    <!-- Verify Sidebar — Patient Queue -->
+    <aside class="verify-sidebar">
+      <div class="vs-head">
+        🖼 Review Queue
+        <span class="chip chip-danger" style="margin-left:8px;font-size:10px;">7 pending</span>
+      </div>
+      <div class="vs-list">
+
+        <div class="vs-section-label">Pending</div>
+
+        <div class="vs-item active">
+          <div class="avatar" style="width:36px;height:36px;background:var(--teal);font-size:12px;">JD</div>
+          <div class="vs-info">
+            <div class="vs-name">John Doe</div>
+            <div class="vs-date">Feb 20 · 09:12 AM</div>
+          </div>
+          <div class="vs-status">⏳</div>
+        </div>
+
+        <div class="vs-item">
+          <div class="avatar" style="width:36px;height:36px;background:var(--purple);font-size:12px;">AM</div>
+          <div class="vs-info">
+            <div class="vs-name">Alice Martinez</div>
+            <div class="vs-date">Feb 20 · 07:45 AM</div>
+          </div>
+          <div class="vs-status">🚩</div>
+        </div>
+
+        <div class="vs-item">
+          <div class="avatar" style="width:36px;height:36px;background:#0891b2;font-size:12px;">LP</div>
+          <div class="vs-info">
+            <div class="vs-name">Lisa Park</div>
+            <div class="vs-date">Feb 19 · 06:30 PM</div>
+          </div>
+          <div class="vs-status">🚩</div>
+        </div>
+
+        <div class="vs-item">
+          <div class="avatar" style="width:36px;height:36px;background:#0369a1;font-size:12px;">MN</div>
+          <div class="vs-info">
+            <div class="vs-name">Michael Ng</div>
+            <div class="vs-date">Feb 19 · 05:10 PM</div>
+          </div>
+          <div class="vs-status">⏳</div>
+        </div>
+
+        <div class="vs-item">
+          <div class="avatar" style="width:36px;height:36px;background:#be185d;font-size:12px;">SP</div>
+          <div class="vs-info">
+            <div class="vs-name">Sam Patel</div>
+            <div class="vs-date">Feb 19 · 04:00 PM</div>
+          </div>
+          <div class="vs-status">⏳</div>
+        </div>
+
+        <div class="vs-section-label" style="margin-top:8px;">Recently Reviewed</div>
+
+        <div class="vs-item" style="opacity:.65;cursor:default;">
+          <div class="avatar" style="width:36px;height:36px;background:#ea580c;font-size:12px;">RK</div>
+          <div class="vs-info">
+            <div class="vs-name">Raj Kumar</div>
+            <div class="vs-date">Feb 20 · 08:00 AM</div>
+          </div>
+          <div class="vs-status">✅</div>
+        </div>
+
+        <div class="vs-item" style="opacity:.65;cursor:default;">
+          <div class="avatar" style="width:36px;height:36px;background:#be185d;font-size:12px;">PS</div>
+          <div class="vs-info">
+            <div class="vs-name">Priya Sharma</div>
+            <div class="vs-date">Feb 20 · 07:15 AM</div>
+          </div>
+          <div class="vs-status">✅</div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- Verification Main Area -->
+    <main class="verify-main-area">
+
+      <!-- Patient Info Header -->
+      <div class="verify-patient-header">
+        <div class="avatar" style="width:50px;height:50px;background:var(--teal);font-size:17px;">JD</div>
+        <div class="vph-info">
+          <h3>John Doe — Session Verification</h3>
+          <p>Post-ACL Surgery · Week 6 of 12 · Submitted: Friday, Feb 20, 2026 at 9:12 AM</p>
+        </div>
+        <div class="flex gap-8 ml-auto">
+          <span class="chip chip-warning">⏳ Pending Review</span>
+          <button class="btn btn-ghost btn-sm" onclick="showToast('Viewing previous patient','info')">← Previous</button>
+          <button class="btn btn-ghost btn-sm" onclick="showToast('Viewing next patient','info')">Next →</button>
+        </div>
+      </div>
+
+      <!-- Session Metadata Bar -->
+      <div class="session-meta-bar">
+        <div class="smb-item">
+          <div class="smb-label">Session Duration</div>
+          <div class="smb-value">42 min</div>
+        </div>
+        <div class="smb-item">
+          <div class="smb-label">Exercises Logged</div>
+          <div class="smb-value">3 of 4</div>
+        </div>
+        <div class="smb-item">
+          <div class="smb-label">Keyframes Captured</div>
+          <div class="smb-value">4 snapshots</div>
+        </div>
+        <div class="smb-item">
+          <div class="smb-label">Capture Method</div>
+          <div class="smb-value" style="font-size:13px;">Randomized Intervals</div>
+        </div>
+      </div>
+
+      <!-- Keyframe Grid -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-header">
+          <h3>📸 Randomized Keyframe Snapshots</h3>
+          <span class="chip chip-blue">4 captures · Encrypted transmission</span>
+        </div>
+        <div style="padding:16px;">
+          <div class="kf-verify-grid">
+
+            <div class="kfv-item ok">
+              <div class="kfv-body">
+                🏃
+                <div class="kfv-ts">08:34:12</div>
+                <div class="kfv-num">KF 1</div>
+              </div>
+              <div class="kfv-footer">✓ Patient clearly exercising — good form</div>
+            </div>
+
+            <div class="kfv-item ok">
+              <div class="kfv-body">
+                🦵
+                <div class="kfv-ts">08:41:55</div>
+                <div class="kfv-num">KF 2</div>
+              </div>
+              <div class="kfv-footer">✓ Correct quad set position confirmed</div>
+            </div>
+
+            <div class="kfv-item warn">
+              <div class="kfv-body">
+                🚴
+                <div class="kfv-ts">09:08:22</div>
+                <div class="kfv-num">KF 3</div>
+              </div>
+              <div class="kfv-footer">⚠ Cycling visible but camera angle unclear</div>
+            </div>
+
+            <div class="kfv-item flag">
+              <div class="kfv-body">
+                ❓
+                <div class="kfv-ts">09:15:40</div>
+                <div class="kfv-num">KF 4</div>
+              </div>
+              <div class="kfv-footer">✕ Patient not in frame — possible break</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Exercise Log Cross-Reference -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-header"><h3>📋 Patient's Reported Exercise Log</h3></div>
+        <div style="padding:8px 12px;">
+          <div class="exercise-item">
+            <div class="ex-icon" style="background:#dbeafe;width:38px;height:38px;font-size:17px;">🦵</div>
+            <div class="ex-info">
+              <div class="ex-name">Straight Leg Raises</div>
+              <div class="ex-meta">3 × 15 reps · Logged 8:32 AM</div>
+            </div>
+            <span class="chip chip-success">✓ Verified by KF1</span>
+          </div>
+          <div class="exercise-item">
+            <div class="ex-icon" style="background:#dcfce7;width:38px;height:38px;font-size:17px;">🏋️</div>
+            <div class="ex-info">
+              <div class="ex-name">Quad Sets (Isometric)</div>
+              <div class="ex-meta">4 × 10 reps · Logged 9:05 AM</div>
+            </div>
+            <span class="chip chip-success">✓ Verified by KF2</span>
+          </div>
+          <div class="exercise-item">
+            <div class="ex-icon" style="background:#fef9c3;width:38px;height:38px;font-size:17px;">🚴</div>
+            <div class="ex-info">
+              <div class="ex-name">Stationary Cycling</div>
+              <div class="ex-meta">15 min · Logged 9:08 AM</div>
+            </div>
+            <span class="chip chip-warning">⚠ Partial — KF3 unclear</span>
+          </div>
+          <div class="exercise-item">
+            <div class="ex-icon" style="background:#fce7f3;width:38px;height:38px;font-size:17px;">🧘</div>
+            <div class="ex-info">
+              <div class="ex-name">Hamstring Stretches</div>
+              <div class="ex-meta">3 × 30s holds · Not logged by patient</div>
+            </div>
+            <span class="chip chip-danger">✕ Not completed</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Clinician Notes -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-header"><h3>📝 Clinician Review Notes</h3></div>
+        <div class="card-body">
+          <textarea class="form-input" rows="4"
+            placeholder="Add your review notes here…">KF3 shows patient on bike but camera angle is unclear — likely legitimate. KF4 shows patient briefly out of frame, possibly retrieving water. Session duration and exercise logging appears consistent. Overall I consider this session valid and will approve with a minor note about KF4.</textarea>
+        </div>
+      </div>
+
+      <!-- Clinician Decision Bar -->
+      <div class="verify-actions">
+        <span class="va-label">Decision:</span>
+        <button class="btn btn-success" onclick="openModal('approve-modal')">✓ Approve Session</button>
+        <button class="btn btn-danger"  onclick="openModal('reject-modal')">✕ Reject Session</button>
+        <button class="btn btn-ghost"   onclick="showToast('Patient notified to redo their session','info')">↩ Request Re-session</button>
+        <button class="btn btn-ghost"   onclick="showToast('Escalated to senior clinician for review','error')">🚩 Escalate to Senior</button>
+        <button class="btn btn-primary ml-auto" onclick="showToast('Loading next patient session…','info')">Next Patient →</button>
+      </div>
+
+    </main>
+    <!-- /verify-main-area -->
+
+  </div>
+  <!-- /verify-layout -->
+
+</div>
+<!-- /page-verify -->
+
+
+<!-- External JavaScript -->
+<script src="script.js"></script>
+
+</body>
+</html>
